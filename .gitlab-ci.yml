@@ -29,8 +29,8 @@ checkov-scan:
     entrypoint:
       - "/usr/bin/env"
       - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-    script:
-    - checkov -d -o json . | tee checkov-report.json
+  script:
+      - checkov -d -o json . | tee checkov-report.json
   after_script:
     - python3 upload-results.py --host "$DD_HOST" --api_key "$DD_APIKEY" --engagement_id 2 --product_id 2 --result_file checkov-report.json --scanner "Checkov Scan"
   artifacts:
