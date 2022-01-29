@@ -24,12 +24,13 @@ build:
 
 checkov-scan:
   stage: build
-  image: bridgecrew/checkov:latest
-  script:
+  image: 
+    name: bridgecrew/checkov:latest
+    entrypoint:
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    script:
     - checkov -d -o json . | tee checkov-report.json
-  entrypoint:
-    - "/usr/bin/env"
-    - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   after_script:
     - python3 upload-results.py --host "$DD_HOST" --api_key "$DD_APIKEY" --engagement_id 2 --product_id 2 --result_file checkov-report.json --scanner "Checkov Scan"
   artifacts:
@@ -37,9 +38,6 @@ checkov-scan:
     when: always # Archive even on exit code failure
     expire_in: one week
   allow_failure: true #<--- allow the build to fail but don't mark it as such
-
-
-
 
 test:
   stage: test
