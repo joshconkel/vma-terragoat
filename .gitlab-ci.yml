@@ -28,6 +28,9 @@ checkov-scan:
     entrypoint:
       - "/usr/bin/env"
       - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  before_script:
+    - apk add python3 py3-pip
+    - pip3 install requests 
   script:
       - checkov -d . -o json | tee checkov-report.json
   after_script:
