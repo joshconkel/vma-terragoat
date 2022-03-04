@@ -21,7 +21,7 @@ build:
    - source env/bin/activate
   
 
-checkov-scan:
+checkov-dojo:
   stage: build
   image: 
     name: bridgecrew/checkov:latest
@@ -37,6 +37,26 @@ checkov-scan:
     - python3 upload-results.py --host "$DD_HOST" --api_key "$DD_APIKEY" --engagement_id 2 --product_id 2 --result_file checkov-report.json --scanner "Checkov Scan"
   artifacts:
     paths: [checkov-report.json]
+    when: always # Archive even on exit code failure
+    expire_in: one week
+  allow_failure: true #<--- allow the build to fail but don't mark it as such
+
+checkov-deptrack:
+  stage: build
+  image: 
+    name: bridgecrew/checkov:latest
+    entrypoint:
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  before_script:
+    - apk add python3 py3-pip curl
+    - pip3 install requests 
+  script:
+      - checkov -d . -o cyclonedx | tee checkov-sbom.xml
+  after_script:
+    - 'curl -X "POST" "https://dependencytrackapi.slalomsf-lab.com/api/v1/bom" -H "Content-Type: multipart/form-data" -H "X-API-Key: t1FLjr79UtHlaSo0kMBkd82BJshSnCid" -F "project=41aaa528-1708-455d-b6b8-a75dd3196960" -F "bom=@checkov-sbom.xml"'
+  artifacts:
+    paths: [checkov-sbom.xml]
     when: always # Archive even on exit code failure
     expire_in: one week
   allow_failure: true #<--- allow the build to fail but don't mark it as such
